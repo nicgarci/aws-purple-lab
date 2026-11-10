@@ -221,3 +221,6 @@ __marimo__/
 
 # VSCode
 .vscode/
+
+# Custom stuff
+terraform/modules/aws-eventbridge/telegram_alerter.zip
