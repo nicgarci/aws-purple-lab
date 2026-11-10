@@ -12,6 +12,16 @@ data "aws_iam_policy_document" "eventbridge_lambda_assume_role" {
       type        = "Service"
       identifiers = ["events.amazonaws.com"]
     }
+    condition {
+      test = "StringEquals"
+      variable = "aws:SourceArn"
+      values = [ aws_cloudwatch_event_rule.purplelab-create-iam-user-rule.arn ]
+    }
+    condition {
+      test = "StringEquals"
+      variable = "aws:SourceAccount"
+      values = [ data.aws_caller_identity.current.account_id ]
+    }
   }
 }
 
@@ -40,11 +50,22 @@ resource "aws_iam_role_policy_attachment" "eventbridge_alerter_attachment" {
 
 data "aws_iam_policy_document" "lambda_assume_role" {
   statement {
+    sid = "TrustEventBridgeService"
     effect = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
+      identifiers = ["events.amazonaws.com"]
+    }
+    condition {
+      test = "StringEquals"
+      variable = "aws:SourceArn"
+      values = [ aws_cloudwatch_event_rule.purplelab-create-iam-user-rule.arn ]
+    }
+    condition {
+      test = "StringEquals"
+      variable = "aws:SourceAccount"
+      values = [ data.aws_caller_identity.current.account_id ]
     }
   }
 }
@@ -66,7 +87,7 @@ data "aws_iam_policy_document" "lambda_execution_document" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = [ aws_cloudwatch_log_group.purplelab_alerter_log_group.arn ]
+    resources = [ "${aws_cloudwatch_log_group.purplelab_alerter_log_group.arn}:*" ]
   }
 }
 
